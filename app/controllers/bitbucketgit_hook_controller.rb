@@ -46,9 +46,9 @@ class BitbucketgitHookController < ApplicationController
   def bitbucker_repository(payload)
     repository = Struct.new(:identifier, :owner, :slug, :is_private)
 
-    identifier = payload['repository']['name']
+    identifier = sanitize_slash(payload['repository']['name'])
     owner = (payload['repository']['owner'].is_a?(Hash) ? payload['repository']['owner']['username'] : payload['repository']['owner'])
-    slug = payload['repository']['slug'] || identifier
+    slug = sanitize_slash(payload['repository']['slug'] || identifier)
     is_private = payload['repository']['is_private']
 
     repository.new(identifier, owner, slug, is_private)
@@ -58,6 +58,10 @@ class BitbucketgitHookController < ApplicationController
     logger.info { "BitbucketGitHook: Executing command: '#{command}'" }
     output = `#{command}`
     logger.info { "BitbucketGitHook: Shell returned '#{output}'" }
+  end
+
+  def sanitize_slash(path)
+    path.gsub /\//, '-'
   end
 
 end
